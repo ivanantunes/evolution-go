@@ -403,6 +403,9 @@ func (w whatsmeowService) StartClient(cd *ClientData) {
 		}
 	}
 
+	// DeviceProps describes the companion device; the handshake uses a separate version.
+	applyProtocolVersion(version)
+
 	// 🔒 FIX: Sempre criar logger, mesmo que WaDebug esteja vazio
 	// Usar "INFO" como nível mínimo para garantir que logs importantes apareçam
 	minLevel := w.config.WaDebug

@@ -300,11 +300,6 @@ func (i instances) Connect(data *ConnectStruct, instance *instance_model.Instanc
 }
 
 func (i instances) Reconnect(instance *instance_model.Instance) error {
-	_, err := i.ensureClientConnected(instance.Id)
-	if err != nil {
-		return err
-	}
-
 	return i.whatsmeowService.ReconnectClient(instance.Id)
 }
 
