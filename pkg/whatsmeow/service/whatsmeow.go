@@ -51,6 +51,7 @@ import (
 )
 
 type WhatsmeowService interface {
+	HasPairedSession(jid string) (bool, error)
 	StartClient(clientData *ClientData)
 	ConnectOnStartup(clientName string)
 	StartInstance(instanceId string) error
@@ -169,6 +170,18 @@ type ProxyConfig struct {
 	Password string `json:"password"`
 	Port     string `json:"port"`
 	Username string `json:"username"`
+}
+
+// HasPairedSession checks the auth store even when no websocket client is running.
+func (w whatsmeowService) HasPairedSession(jid string) (bool, error) {
+	if jid == "" {
+		return false, nil
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	var paired bool
+	err := w.authDB.QueryRowContext(ctx, "SELECT EXISTS(SELECT 1 FROM whatsmeow_device WHERE jid = $1)", jid).Scan(&paired)
+	return paired, err
 }
 
 func (w whatsmeowService) ReconnectClient(instanceId string) error {

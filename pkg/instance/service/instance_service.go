@@ -83,6 +83,7 @@ type ConnectStruct struct {
 }
 
 type StatusStruct struct {
+	Paired    bool
 	Connected bool
 	LoggedIn  bool
 	myJid     *types.JID
@@ -381,8 +382,17 @@ func (i instances) Logout(instance *instance_model.Instance) (*instance_model.In
 func (i instances) Status(instance *instance_model.Instance) (*StatusStruct, error) {
 	client := i.clientPointer[instance.Id]
 
+	paired := client != nil && client.IsLoggedIn()
+	if !paired {
+		var err error
+		paired, err = i.whatsmeowService.HasPairedSession(instance.Jid)
+		if err != nil {
+			return nil, fmt.Errorf("failed to check paired session: %w", err)
+		}
+	}
 	if client == nil {
 		return &StatusStruct{
+			Paired:    paired,
 			Connected: false,
 			LoggedIn:  false,
 		}, nil
@@ -399,6 +409,7 @@ func (i instances) Status(instance *instance_model.Instance) (*StatusStruct, err
 	}
 
 	return &StatusStruct{
+		Paired:    paired,
 		Connected: isConnected,
 		LoggedIn:  isLoggedIn,
 		myJid:     myJid,
